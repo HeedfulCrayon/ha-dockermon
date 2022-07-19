@@ -6,7 +6,7 @@ var config = convict({
   debug: {
       doc: 'Set to true to enable debugging',
       format: 'Boolean',
-      default: false
+      default: true
   },
   http: {
       port: {
