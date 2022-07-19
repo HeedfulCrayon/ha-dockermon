@@ -209,9 +209,6 @@ app.get('/service-tasks', function (req, res) {
                 }
                 tasksResult = [];
                 tasks.forEach(task => {
-                    if (config.get("debug")){
-                        console.log("Iterating tasks on " + task.ID);
-                    }
                     tasksResult.push({
                         state: task.Status.State,
                         task: task,
@@ -219,10 +216,16 @@ app.get('/service-tasks', function (req, res) {
                         image: task.Spec.ContainerSpec.Image,
                         id: task.ID
                     });
+                    if (config.get("debug")){
+                        console.log("Added task to result")
+                    }
                 });
-            serviceTasksResult.push({
-                name: service.Spec.Name,
-                tasks: tasksResult
+                if (config.get("debug")){
+                    console.log("Adding tasks for service " + service.Spec.Name)
+                }
+                serviceTasksResult.push({
+                    name: service.Spec.Name,
+                    tasks: tasksResult
                 });
             });
         });
