@@ -205,7 +205,7 @@ app.get('/service-tasks', function (req, res) {
                 res.status(200);
                 if (config.get("debug")){
                     console.log("Response received");
-                    console.log(tasks);
+                    // console.log(tasks);
                 }
                 var test = {"name": service.Spec.Name, "tasks": []}
                 tasks.forEach(task => {
@@ -217,6 +217,9 @@ app.get('/service-tasks', function (req, res) {
                         id: task.ID 
                     })
                 });
+                if (config.get("debug")){
+                    console.log(test);
+                }
                 serviceTasksResult.push(test);
                 // tasksResult = [];
                 // tasks.forEach(task => {
