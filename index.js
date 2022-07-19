@@ -221,12 +221,16 @@ app.get('/service-tasks', function (req, res) {
                     }
                 });
                 if (config.get("debug")){
-                    console.log("Adding tasks for service " + service.Spec.Name)
+                    console.log("Adding tasks for service " + service.Spec.Name);
+                    console.log(tasksResult);
                 }
                 serviceTasksResult.push({
                     name: service.Spec.Name,
                     tasks: tasksResult
                 });
+                if (config.get("debug")){
+                    console.log("Added service with tasks to the result");
+                }
             });
         });
         res.send(serviceTasksResult);
