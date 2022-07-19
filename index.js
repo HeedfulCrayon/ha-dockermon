@@ -207,7 +207,7 @@ app.get('/service-tasks', function (req, res) {
                     console.log("Response received");
                     // console.log(tasks);
                 }
-                var test = {"name": service.Spec.Name, "tasks": []}
+                var test = {"name": service.Spec.Name, "service_tasks": []}
                 tasks.forEach(task => {
                     test.tasks.push({
                         state: task.Status.State,
