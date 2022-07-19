@@ -207,30 +207,41 @@ app.get('/service-tasks', function (req, res) {
                     console.log("Response received");
                     console.log(tasks);
                 }
-                tasksResult = [];
+                var test = {"name": service.Spec.Name, "tasks": []}
                 tasks.forEach(task => {
-                    tasksResult.push({
+                    test.tasks.push({
                         state: task.Status.State,
                         task: task,
                         status: task.Status,
                         image: task.Spec.ContainerSpec.Image,
-                        id: task.ID
-                    });
-                    if (config.get("debug")){
-                        console.log("Added task to result")
-                    }
+                        id: task.ID 
+                    })
                 });
-                if (config.get("debug")){
-                    console.log("Adding tasks for service " + service.Spec.Name);
-                    console.log(tasksResult);
-                }
-                serviceTasksResult.push({
-                    name: service.Spec.Name,
-                    tasks: tasksResult
-                });
-                if (config.get("debug")){
-                    console.log("Added service with tasks to the result");
-                }
+                serviceTasksResult.push(test);
+                // tasksResult = [];
+                // tasks.forEach(task => {
+                //     tasksResult.push({
+                //         state: task.Status.State,
+                //         task: task,
+                //         status: task.Status,
+                //         image: task.Spec.ContainerSpec.Image,
+                //         id: task.ID
+                //     });
+                //     if (config.get("debug")){
+                //         console.log("Added task to result")
+                //     }
+                // });
+                // if (config.get("debug")){
+                //     console.log("Adding tasks for service " + service.Spec.Name);
+                //     console.log(tasksResult);
+                // }
+                // serviceTasksResult.push({
+                //     name: service.Spec.Name,
+                //     tasks: tasksResult
+                // });
+                // if (config.get("debug")){
+                //     console.log("Added service with tasks to the result");
+                // }
             });
         });
         res.send(serviceTasksResult);
