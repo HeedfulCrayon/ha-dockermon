@@ -356,7 +356,7 @@ app.get('/service/:serviceId/tasks', function (req, res) {
                 id: task.ID
             });
         });
-        res.send(tasksResult.filter(task => task.state != "shutdown"));
+        res.send({ serviceTasks: tasksResult, runningTask: tasksResult.find(task => typeof task !== 'undefined' && task.Status.State != "shutdown") });
     })
 });
 
