@@ -229,7 +229,7 @@ app.get('/service-tasks', function (req, res) {
 
                     serviceTasksResult.push(serviceTasks);
                 });
-                if (index === array.length -1) resolve();
+                if (index === services.length -1) resolve();
             });
         });
         
