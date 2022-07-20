@@ -813,24 +813,3 @@ function getServiceTasks(cb, error)
     })
 }
 
-function getTasks(name, cb, error)
-{
-    docker.listTasks({ filters: { "service": [name] } }, function (err, tasks) {
-        if (err) {
-            if (typeof error == "function")
-                return error(500, err);
-
-            return;
-        }
-
-        if (tasks.length < 1) {
-            if (typeof error == "function")
-                return error(404, "task with service name not found");
-            
-            return;
-        }
-
-        return cb(tasks);
-    })
-}
-
