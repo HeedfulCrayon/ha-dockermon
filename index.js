@@ -356,7 +356,7 @@ app.get('/service/:serviceId/tasks', function (req, res) {
                 id: task.ID
             });
         });
-        res.send(tasksResult);
+        res.send(tasksResult.filter(task => task.state != "shutdown"));
     })
 });
 
