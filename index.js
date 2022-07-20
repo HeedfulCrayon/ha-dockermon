@@ -833,7 +833,7 @@ function getServiceTasks(cb, error)
             var serviceTasks = [];
             for(id in services) {
                 myTaskList = await docker.listTasks({ filters: { "service": [services[id].Spec.Name] } })
-                serviceTasks.push({ serviceName: services[id].Spec.Name, taskList: myTaskList })
+                serviceTasks.push({ serviceName: services[id].Spec.Name, taskList: myTaskList.filter(task => task.Status.State != "shutdown") })
             }
         }
         return cb(serviceTasks);
