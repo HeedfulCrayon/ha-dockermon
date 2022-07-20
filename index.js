@@ -832,9 +832,8 @@ function getServiceTasks(cb, error)
             //We need to only return the ID as it matches exactly
             var serviceTasks = [];
             for(id in services) {
-                let taskList = docker.listTasks({ filters: { "service": [services[id].Spec.Name] } })
-                taskList.then(tasks => { serviceTasks.push({ serviceName: services[id].Spec.Name, taskList: tasks }) })
-                taskList.catch(err => { console.log(err); });
+                myTaskList = await docker.listTasks({ filters: { "service": [services[id].Spec.Name] } })
+                serviceTasks.push({ serviceName: services[id].Spec.Name, taskList: myTaskList })
             }
         }
         return cb(serviceTasks);
