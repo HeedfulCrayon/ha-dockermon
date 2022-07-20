@@ -190,23 +190,27 @@ app.get('/services', function (req, res) {
 
 app.get('/service-tasks', function (req, res) {
     docker.listServices({ all: true }, function (err, services) {
+
         if (err) {
             res.status(500);
             res.send(err);
             return;
         }
+
         var serviceTasksResult = [];
         services.forEach(service => {
+
             if (config.get("debug")){
                 console.log("Iterating services on " + service.ID);
             }
+
             getServiceTasks(service.ID, function(tasks){
-                res.status(200);
                 if (config.get("debug")){
                     console.log("Response received");
                     // console.log(tasks);
                 }
-                var serviceTasks = {"name": service.Spec.Name, "service_tasks": []}
+
+                var serviceTasks = {name: service.Spec.Name, service_tasks: []}
                 tasks.forEach(task => {
                     serviceTasks.service_tasks.push({
                         state: task.Status.State,
@@ -216,14 +220,21 @@ app.get('/service-tasks', function (req, res) {
                         id: task.ID 
                     })
                 });
+
                 if (config.get("debug")){
                     console.log(serviceTasks);
                 }
+
                 serviceTasksResult.push(serviceTasks);
+
+                if (config.get("debug")){
+                    console.log(serviceTasksResult);
+                }
             });
         });
+
         res.status(200);
-        res.send(serviceTasksResult);
+        res.send({ service: serviceTasksResult });
     });
 });
 
