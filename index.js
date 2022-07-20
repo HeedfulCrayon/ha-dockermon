@@ -817,7 +817,7 @@ function getServiceTasks(name, cb, error)
     })
 }
 
-function getServiceTasks(cb, error)
+async function getServiceTasks(cb, error)
 {
     docker.listServices({ limit:100}, function (err, services) {
         if (err) {
