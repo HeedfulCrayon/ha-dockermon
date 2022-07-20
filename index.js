@@ -188,6 +188,19 @@ app.get('/services', function (req, res) {
     });
 });
 
+app.get('/tasks', function (req, res) {
+    docker.listTasks({ all: true }, function (err, tasks) {
+        if (err) {
+            res.status(500);
+            res.send(err);
+            return;
+        }
+
+        res.status(200);
+        res.send(tasks);
+    });
+})
+
 app.get('/service-tasks', function (req, res) {
     docker.listServices({ all: true }, function (err, services) {
 
@@ -226,7 +239,7 @@ app.get('/service-tasks', function (req, res) {
                     console.log(serviceTasks);
                 }
 
-                serviceTasksResult.push(serviceTasks);
+                serviceTasksResult.push(eval(serviceTasks));
 
                 if (config.get("debug")){
                     console.log(serviceTasksResult);
@@ -779,7 +792,28 @@ function getService(name, cb, error)
     });
 }
 
-function getServiceTasks(name, cb, error)
+function getServiceTasks(cb, error)
+{
+    docker.listTasks(function (err, tasks) {
+        if (err) {
+            if (typeof error == "function")
+                return error(500, err);
+
+            return;
+        }
+
+        if (tasks.length < 1) {
+            if (typeof error == "function")
+                return error(404, "task with service name not found");
+            
+            return;
+        }
+
+        return cb(tasks);
+    })
+}
+
+function getTasks(name, cb, error)
 {
     docker.listTasks({ filters: { "service": [name] } }, function (err, tasks) {
         if (err) {
