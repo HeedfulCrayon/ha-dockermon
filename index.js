@@ -830,13 +830,14 @@ function getServiceTasks(cb, error)
         if (services.length > 0) {
             //What is the ID of this service?
             //We need to only return the ID as it matches exactly
+            var serviceTasks = [];
             for(id in services) {
                 let taskList = docker.listTasks({ filters: { "service": [services[id].Spec.Name] } })
-                taskList.then(tasks => { services[id].RunningTasks = tasks; })
+                taskList.then(tasks => { serviceTasks.push({ serviceName: services[id].Spec.Name, taskList: tasks }) })
                 taskList.catch(err => { console.log(err); });
             }
         }
-        return cb(services);
+        return cb(serviceTasks);
     });
     
 }
