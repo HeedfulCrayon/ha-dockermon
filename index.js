@@ -198,49 +198,48 @@ app.get('/service-tasks', function (req, res) {
         }
 
         var serviceTasksResult = [];
-        var servicePromise = new Promise((resolve, reject) => {
-            services.forEach((service, index, services) => {
+        services.forEach(service => {
 
+            // if (config.get("debug")){
+            //     console.log("Iterating services on " + service.ID);
+            // }
+
+            let serviceTasks = { name: service.Spec.Name, service_tasks: [] }
+
+            getServiceTasks(service.ID, function(tasks){
                 // if (config.get("debug")){
-                //     console.log("Iterating services on " + service.ID);
+                //     console.log("Response received");
+                //     // console.log(tasks);
                 // }
-
-                let serviceTasks = { name: service.Spec.Name, service_tasks: [] }
-
-                getServiceTasks(service.ID, function(tasks){
-                    // if (config.get("debug")){
-                    //     console.log("Response received");
-                    //     // console.log(tasks);
-                    // }
-                    tasks.forEach(task => {
-                        let taskobj = { 
-                            state: task.Status.State, 
-                            task: task, 
-                            status: task.Status, 
-                            image: task.Spec.ContainerSpec.Image, 
-                            id: task.ID 
-                        }
-                        serviceTasks.service_tasks.push(taskobj)
-                    });
-
-                    if (config.get("debug")){
-                        console.log(serviceTasks);
+                tasks.forEach(task => {
+                    let taskobj = { 
+                        state: task.Status.State, 
+                        task: task, 
+                        status: task.Status, 
+                        image: task.Spec.ContainerSpec.Image, 
+                        id: task.ID 
                     }
-
-                    serviceTasksResult.push(serviceTasks);
+                    serviceTasks.service_tasks.push(taskobj)
                 });
-                if (index === services.length -1) resolve();
+
+                if (config.get("debug")){
+                    console.log(serviceTasks);
+                }
+
+                serviceTasksResult.push(serviceTasks);
+
+                if (config.get("debug")){
+                    console.log(serviceTasksResult);
+                }
             });
         });
-        
-        servicePromise.then(() => {
-            if (config.get("debug")){
-                console.log(JSON.stringify(serviceTasksResult));
-            }
-    
-            res.status(200);
-            res.send(JSON.stringify(serviceTasksResult));
-        });
+
+        if (config.get("debug")){
+            console.log(JSON.stringify(serviceTasksResult));
+        }
+
+        res.status(200);
+        res.send(JSON.stringify(serviceTasksResult));
     });
 });
 
