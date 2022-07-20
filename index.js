@@ -234,7 +234,7 @@ app.get('/service-tasks', function (req, res) {
         });
 
         res.status(200);
-        res.send({ service: serviceTasksResult });
+        res.send(JSON.stringify(serviceTasksResult));
     });
 });
 
