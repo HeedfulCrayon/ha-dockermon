@@ -821,7 +821,7 @@ function getAllServiceTasks(cb, error)
             var serviceTasks = [];
             for(id in services) {
                 myTaskList = await docker.listTasks({ filters: { "service": [services[id].Spec.Name] } })
-                serviceTasks.push({ serviceName: services[id].Spec.Name, taskList: myTaskList.filter(task => task.Status.State != "shutdown") })
+                serviceTasks.push({ serviceName: services[id].Spec.Name, taskList: myTaskList, runningTask: myTaskList.find(task => typeof task !== 'undefined' && task.Status.State != "shutdown") })
             }
         }
         return cb(serviceTasks);
