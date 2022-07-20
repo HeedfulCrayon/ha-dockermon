@@ -223,7 +223,7 @@ app.get('/service-tasks', function (req, res) {
             });
         });
         res.status(200);
-        res.send(serviceTasksResult);
+        res.send({ service: serviceTasksResult });
     });
 });
 
