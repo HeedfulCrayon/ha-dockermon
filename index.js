@@ -189,17 +189,7 @@ app.get('/services', function (req, res) {
 });
 
 app.get('/tasks', function (req, res) {
-    // docker.listTasks({ all: true }, function (err, tasks) {
-    //     if (err) {
-    //         res.status(500);
-    //         res.send(err);
-    //         return;
-    //     }
-
-    //     res.status(200);
-    //     res.send(tasks);
-    // });
-    getServiceTasks(function(services) {
+    getAllServiceTasks(function(services) {
         res.status(200);
         res.send(services);
     });
@@ -817,9 +807,9 @@ function getServiceTasks(name, cb, error)
     })
 }
 
-function getServiceTasks(cb, error)
+function getAllServiceTasks(cb, error)
 {
-    docker.listServices({ limit:100}, async function (err, services) {
+    docker.listServices({ limit:100 }, async function (err, services) {
         if (err) {
             if (typeof error == "function")
                 return error(500, err);
@@ -828,8 +818,6 @@ function getServiceTasks(cb, error)
         }
 
         if (services.length > 0) {
-            //What is the ID of this service?
-            //We need to only return the ID as it matches exactly
             var serviceTasks = [];
             for(id in services) {
                 myTaskList = await docker.listTasks({ filters: { "service": [services[id].Spec.Name] } })
