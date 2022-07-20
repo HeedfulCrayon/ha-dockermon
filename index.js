@@ -204,13 +204,13 @@ app.get('/service-tasks', function (req, res) {
             //     console.log("Iterating services on " + service.ID);
             // }
 
+            var serviceTasks = {name: service.Spec.Name, service_tasks: []}
+
             getServiceTasks(service.ID, function(tasks){
                 // if (config.get("debug")){
                 //     console.log("Response received");
                 //     // console.log(tasks);
                 // }
-
-                var serviceTasks = {name: service.Spec.Name, service_tasks: []}
                 tasks.forEach(task => {
                     var taskobj = { 
                         state: task.Status.State, 
