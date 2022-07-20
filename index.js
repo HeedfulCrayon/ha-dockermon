@@ -189,15 +189,19 @@ app.get('/services', function (req, res) {
 });
 
 app.get('/tasks', function (req, res) {
-    docker.listTasks({ all: true }, function (err, tasks) {
-        if (err) {
-            res.status(500);
-            res.send(err);
-            return;
-        }
+    // docker.listTasks({ all: true }, function (err, tasks) {
+    //     if (err) {
+    //         res.status(500);
+    //         res.send(err);
+    //         return;
+    //     }
 
+    //     res.status(200);
+    //     res.send(tasks);
+    // });
+    getServiceTasks(function(services) {
         res.status(200);
-        res.send(tasks);
+        res.send(services);
     });
 })
 
@@ -792,9 +796,9 @@ function getService(name, cb, error)
     });
 }
 
-function getServiceTasks(cb, error)
+function getServiceTasks(name, cb, error)
 {
-    docker.listTasks(function (err, tasks) {
+    docker.listTasks({ filters: { "service": [name] } }, function (err, tasks) {
         if (err) {
             if (typeof error == "function")
                 return error(500, err);
@@ -811,5 +815,29 @@ function getServiceTasks(cb, error)
 
         return cb(tasks);
     })
+}
+
+function getServiceTasks(cb, error)
+{
+    docker.listServices({ limit:100}, function (err, services) {
+        if (err) {
+            if (typeof error == "function")
+                return error(500, err);
+
+            return;
+        }
+
+        if (services.length > 0) {
+            //What is the ID of this service?
+            //We need to only return the ID as it matches exactly
+            for(id in services) {
+                let taskList = docker.listTasks({ filters: { "service": [services[id].Spec.Name] } })
+                taskList.then(tasks => { services[id].RunningTasks = tasks; })
+                taskList.catch(err => { console.log(err); });
+            }
+        }
+        return cb(services);
+    });
+    
 }
 
