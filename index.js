@@ -204,7 +204,7 @@ app.get('/service-tasks', function (req, res) {
             //     console.log("Iterating services on " + service.ID);
             // }
 
-            var serviceTasks = {name: service.Spec.Name, service_tasks: []}
+            let serviceTasks = {name: service.Spec.Name, service_tasks: []}
 
             getServiceTasks(service.ID, function(tasks){
                 // if (config.get("debug")){
@@ -212,7 +212,7 @@ app.get('/service-tasks', function (req, res) {
                 //     // console.log(tasks);
                 // }
                 tasks.forEach(task => {
-                    var taskobj = { 
+                    let taskobj = { 
                         state: task.Status.State, 
                         task: task, 
                         status: task.Status, 
