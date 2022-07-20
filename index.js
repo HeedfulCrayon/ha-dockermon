@@ -204,7 +204,7 @@ app.get('/service-tasks', function (req, res) {
             //     console.log("Iterating services on " + service.ID);
             // }
 
-            let serviceTasks = {name: service.Spec.Name, service_tasks: []}
+            let serviceTasks = { name: service.Spec.Name, service_tasks: [] }
 
             getServiceTasks(service.ID, function(tasks){
                 // if (config.get("debug")){
@@ -219,12 +219,12 @@ app.get('/service-tasks', function (req, res) {
                         image: task.Spec.ContainerSpec.Image, 
                         id: task.ID 
                     }
-                    serviceTasks.service_tasks.push({ taskobj })
+                    serviceTasks.service_tasks.push(taskobj)
                 });
 
-                // if (config.get("debug")){
-                //     console.log(serviceTasks);
-                // }
+                if (config.get("debug")){
+                    console.log(serviceTasks);
+                }
 
                 serviceTasksResult.push(serviceTasks);
             });
