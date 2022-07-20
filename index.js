@@ -200,38 +200,39 @@ app.get('/service-tasks', function (req, res) {
         var serviceTasksResult = [];
         services.forEach(service => {
 
-            if (config.get("debug")){
-                console.log("Iterating services on " + service.ID);
-            }
+            // if (config.get("debug")){
+            //     console.log("Iterating services on " + service.ID);
+            // }
 
             getServiceTasks(service.ID, function(tasks){
-                if (config.get("debug")){
-                    console.log("Response received");
-                    // console.log(tasks);
-                }
+                // if (config.get("debug")){
+                //     console.log("Response received");
+                //     // console.log(tasks);
+                // }
 
                 var serviceTasks = {name: service.Spec.Name, service_tasks: []}
                 tasks.forEach(task => {
-                    serviceTasks.service_tasks.push({
-                        state: task.Status.State,
-                        task: task,
-                        status: task.Status,
-                        image: task.Spec.ContainerSpec.Image,
+                    var taskobj = { 
+                        state: task.Status.State, 
+                        task: task, 
+                        status: task.Status, 
+                        image: task.Spec.ContainerSpec.Image, 
                         id: task.ID 
-                    })
+                    }
+                    serviceTasks.service_tasks.push({ taskobj })
                 });
 
-                if (config.get("debug")){
-                    console.log(serviceTasks);
-                }
+                // if (config.get("debug")){
+                //     console.log(serviceTasks);
+                // }
 
                 serviceTasksResult.push(serviceTasks);
-
-                if (config.get("debug")){
-                    console.log(serviceTasksResult);
-                }
             });
         });
+
+        if (config.get("debug")){
+            console.log(JSON.stringify(serviceTasksResult));
+        }
 
         res.status(200);
         res.send(JSON.stringify(serviceTasksResult));
