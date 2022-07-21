@@ -1,6 +1,6 @@
 {
   "name": "ha-dockermon",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "A RESTful HTTP endpoint which can return the status of Docker containers for Home Automation controllers like Home Assistant",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/philhawthorne/ha-dockermon.git"
+    "url": "git+https://github.com/heedfulcrayon/ha-dockermon.git"
   },
   "keywords": [
     "home-assistant",
@@ -21,14 +21,14 @@
   "author": "Phil Hawthorne",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/philhawthorne/ha-dockermon/issues"
+    "url": "https://github.com/heedfulcrayon/ha-dockermon/issues"
   },
-  "homepage": "https://github.com/philhawthorne/ha-dockermon#readme",
+  "homepage": "https://github.com/heedfulcrayon/ha-dockermon#readme",
   "dependencies": {
     "body-parser": "^1.18.2",
     "convict": "^5.1.0",
     "dockerode": "^2.5.3",
-    "express": "^4.16.2",
+    "express": "^4.18.1",
     "express-basic-auth": "^1.2.0",
     "js-yaml": "^3.13.1",
     "snyk": "^1.251.1"

@@ -12,6 +12,8 @@ app.use(bodyParser.json({
     type: 'application/octet-stream'
 }));
 
+var debug = config.get('debug');
+
 //If we have set a username and password, require it
 if (config.get("http.username")) {
     var authUsers = {
@@ -327,8 +329,8 @@ app.get('/service/:serviceId/update', function (req, res) {
     })
 });
 
-app.get('/service/:serviceId/tasks', function (req, res) {
-
+app.get('/service/:serviceId/tasks', async function (req, res) {
+    log('Request received /service/' + req.params.serviceId + '/tasks');
     if (!req.params.serviceId) {
         //This paramater is required
         res.status(400);
@@ -336,16 +338,18 @@ app.get('/service/:serviceId/tasks', function (req, res) {
         return;
     }
 
-    var serviceId = req.params.serviceId;
-
-    if (config.get("debug"))
-        console.log("Getting tasks of service " + serviceId);
+    let serviceId = req.params.serviceId;
+    let service = await docker.getService(serviceId).inspect()
+    let replicas;
+    if (service.Spec.Mode.hasOwnProperty('Global')) {
+        replicas = (await docker.listNodes()).length;
+    } else {
+        replicas = service.Spec.Mode.Replicated.Replicas;
+    }
+    
+    log("Getting tasks of service " + serviceId);
     getServiceTasks(serviceId, function(tasks){
         res.status(200);
-        if (config.get("debug")){
-            console.log("Response received");
-            console.log(tasks);
-        }
         tasksResult = [];
         tasks.forEach(task => {
             tasksResult.push({
@@ -356,7 +360,18 @@ app.get('/service/:serviceId/tasks', function (req, res) {
                 id: task.ID
             });
         });
-        res.send({ serviceTasks: tasksResult, runningTask: tasksResult.find(task => task.state !== "shutdown") });
+
+        let runningTasks = tasksResult.filter(task => task.state === 'running').length;
+        let status = 'Running';
+        if (runningTasks < replicas && runningTasks > 0) {
+            status = 'Degraded (' + runningTasks + '/' + replicas + ')';
+        } else if (runningTasks == 0) {
+            status = 'Not Running'
+        }
+
+        let response = { serviceTasks: tasksResult, status: status }
+        log('Response:', response)
+        res.send(response);
     })
 });
 
@@ -416,6 +431,31 @@ app.get('/service/:serviceId/restart', function (req, res) {
         })
         res.send(result);
     })
+});
+
+app.get('/nodes', function (req, res) {
+    docker.listNodes({ all: true }, function (err, nodes) {
+        if (err) {
+            res.status(500);
+            res.send(err);
+            return;
+        }
+        nodeResults = [];
+        nodes.forEach(node => {
+            nodeResults.push({
+                ID: node.ID,
+                Spec: node.Spec,
+                Description: { 
+                    HostName: node.Description.HostName,
+                    Resources: node.Description.Resources
+                },
+                Status: node.Status,
+                ManagerStatus: node.ManagerStatus
+            })
+        })
+        res.status(200);
+        res.send(nodeResults);
+    });
 });
 
 /**
@@ -817,15 +857,39 @@ function getAllServiceTasks(cb, error)
             return;
         }
 
+        nodes = await docker.listNodes();
+
         if (services.length > 0) {
             var serviceTasks = [];
             for(id in services) {
+                let replicas;
+                if (!services[id].Spec.Mode.hasOwnProperty('Global')) {
+                    replicas = services[id].Spec.Mode.Replicated.Replicas;
+                } else {
+                    replicas = nodes.length;
+                }
                 myTaskList = await docker.listTasks({ filters: { "service": [services[id].Spec.Name] } })
-                serviceTasks.push({ serviceName: services[id].Spec.Name, taskList: myTaskList, runningTask: myTaskList.find(task => typeof task !== 'undefined' && task.Status.State != "shutdown") })
+                let status = 'Running';
+                if (myTaskList.length < replicas && myTaskList.length > 0) {
+                    status = 'Degraded (' + myTaskList.length + '/' + replicas + ')';
+                } else if (myTaskList.length == 0) {
+                    status = 'Not Running'
+                }
+                serviceTasks.push({ serviceName: services[id].Spec.Name, taskList: myTaskList, status: status })
             }
         }
         return cb(serviceTasks);
     });
-    
+}
+
+function log(msg, extra = null)
+{
+    if (debug){
+        console.log(msg);
+        if (extra !== null)
+        {
+            console.log(extra);
+        }
+    }
 }
 
