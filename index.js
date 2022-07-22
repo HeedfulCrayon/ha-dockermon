@@ -6,11 +6,17 @@ var fs = require('fs');
 var config = require('./default_settings.js');
 var docker = false;
 
+const logger = function (req, res, next) {
+    console.log(`${Date.now()} ${req.url}`);
+    next();
+}
+
 //Setup express
 var app = express();
 app.use(bodyParser.json({
     type: 'application/octet-stream'
 }));
+app.use(logger);
 
 var debug = config.get('debug');
 
@@ -24,7 +30,7 @@ if (config.get("http.username")) {
 }
 
 //Set the container route
-app.all('/container/:containerId', function (req, res) {
+app.all('/container/:containerId', (req, res) => {
 
     if (!req.params.containerId) {
         //This paramater is required
@@ -178,7 +184,7 @@ app.all('/container/:containerId', function (req, res) {
 /**
  * List all of the services
  */
-app.get('/services', function (req, res) {
+app.get('/services', (req, res) => {
     docker.listServices({ all: true }, function (err, services) {
         if (err) {
             res.status(500);
@@ -190,72 +196,16 @@ app.get('/services', function (req, res) {
     });
 });
 
-app.get('/tasks', function (req, res) {
+app.get('/tasks', (req, res) => {
     getAllServiceTasks(function(services) {
         res.status(200);
         res.send(services);
     });
 })
 
-app.get('/service-tasks', function (req, res) {
-    docker.listServices({ all: true }, function (err, services) {
-
-        if (err) {
-            res.status(500);
-            res.send(err);
-            return;
-        }
-
-        var serviceTasksResult = [];
-        services.forEach(service => {
-
-            // if (config.get("debug")){
-            //     console.log("Iterating services on " + service.ID);
-            // }
-
-            let serviceTasks = { name: service.Spec.Name, service_tasks: [] }
-
-            getServiceTasks(service.ID, function(tasks){
-                // if (config.get("debug")){
-                //     console.log("Response received");
-                //     // console.log(tasks);
-                // }
-                tasks.forEach(task => {
-                    let taskobj = { 
-                        state: task.Status.State, 
-                        task: task, 
-                        status: task.Status, 
-                        image: task.Spec.ContainerSpec.Image, 
-                        id: task.ID 
-                    }
-                    serviceTasks.service_tasks.push(taskobj)
-                });
-
-                if (config.get("debug")){
-                    console.log(serviceTasks);
-                }
-
-                serviceTasksResult.push(eval(serviceTasks));
-
-                if (config.get("debug")){
-                    console.log(serviceTasksResult);
-                }
-            });
-        });
-
-        if (config.get("debug")){
-            console.log(JSON.stringify(serviceTasksResult));
-        }
-
-        res.status(200);
-        res.send(JSON.stringify(serviceTasksResult));
-    });
-});
-
-app.get('/service/:serviceId', function (req, res) {
+app.get('/service/:serviceId', (req, res) => {
 
     if (!req.params.serviceId) {
-        //This paramater is required
         res.status(400);
         res.send("Service ID/Name is required");
         return;
@@ -263,8 +213,7 @@ app.get('/service/:serviceId', function (req, res) {
 
     var serviceId = req.params.serviceId;
 
-    if (config.get("debug"))
-        console.log("Getting status of service " + serviceId);
+    log("Getting status of service " + serviceId);
 
     getService(serviceId, function(service){
         res.status(200); // Service found
@@ -279,8 +228,7 @@ app.get('/service/:serviceId', function (req, res) {
     })
 });
 
-app.get('/service/:serviceId/update', function (req, res) {
-
+app.get('/service/:serviceId/update', (req, res) => {
     if (!req.params.serviceId) {
         //This paramater is required
         res.status(400);
@@ -290,14 +238,10 @@ app.get('/service/:serviceId/update', function (req, res) {
 
     var serviceId = req.params.serviceId;
 
-    if (config.get("debug"))
-        console.log("Getting status of service " + serviceId);
+    log(`Getting status of service ${serviceId}`);
     getService(serviceId, function(service){
-        res.status(200); // Service found
-        if (config.get("debug")){
-            console.log("Response received");
-            console.log(service);
-        }
+        res.status(200);
+        log('Service Status retrieved', service);
 
         service = docker.getService(service.ID);
 
@@ -319,6 +263,7 @@ app.get('/service/:serviceId/update', function (req, res) {
                 }
 
                 res.status(200);
+                log(`Updating Service ${serviceId}`)
                 if (data.Warnings){
                     res.send({ status: "Success", warnings: data.Warnings });
                 } else {
@@ -329,10 +274,8 @@ app.get('/service/:serviceId/update', function (req, res) {
     })
 });
 
-app.get('/service/:serviceId/tasks', async function (req, res) {
-    log('Request received /service/' + req.params.serviceId + '/tasks');
+app.get('/service/:serviceId/tasks', async (req, res) => {
     if (!req.params.serviceId) {
-        //This paramater is required
         res.status(400);
         res.send("Service ID/Name is required");
         return;
@@ -375,7 +318,7 @@ app.get('/service/:serviceId/tasks', async function (req, res) {
     })
 });
 
-app.get('/service/:serviceId/restart', function (req, res) {
+app.get('/service/:serviceId/restart', (req, res) => {
 
     if (!req.params.serviceId) {
         //This paramater is required
@@ -433,7 +376,7 @@ app.get('/service/:serviceId/restart', function (req, res) {
     })
 });
 
-app.get('/nodes', function (req, res) {
+app.get('/nodes', (req, res) => {
     docker.listNodes({ all: true }, function (err, nodes) {
         if (err) {
             res.status(500);
@@ -461,7 +404,7 @@ app.get('/nodes', function (req, res) {
 /**
  * List all of the containers
  */
-app.get('/containers', function (req, res) {
+app.get('/containers', (req, res) => {
     docker.listContainers({ all: true }, function (err, containers) {
         if (err) {
             res.status(500);
@@ -476,7 +419,7 @@ app.get('/containers', function (req, res) {
 /**
  * Restart the container by the ID specified
  */
-app.get('/container/:containerId/restart', function (req, res) {
+app.get('/container/:containerId/restart', (req, res) => {
     var containerId = req.params.containerId;
     console.log("Restart " + containerId);
 
@@ -502,7 +445,7 @@ app.get('/container/:containerId/restart', function (req, res) {
 /**
  * Start the container by the ID specified
  */
-app.get('/container/:containerId/start', function (req, res) {
+app.get('/container/:containerId/start', (req, res) => {
     var containerId = req.params.containerId;
     console.log("Start " + containerId);
 
@@ -527,7 +470,7 @@ app.get('/container/:containerId/start', function (req, res) {
 /**
  * Pause the container by the ID specified
  */
-app.get('/container/:containerId/pause', function (req, res) {
+app.get('/container/:containerId/pause', (req, res) => {
     var containerId = req.params.containerId;
     console.log("Pause " + containerId);
 
@@ -552,7 +495,7 @@ app.get('/container/:containerId/pause', function (req, res) {
 /**
  * Unpause the container by the ID specified
  */
-app.get('/container/:containerId/unpause', function (req, res) {
+app.get('/container/:containerId/unpause', (req, res) => {
     var containerId = req.params.containerId;
     console.log("Unpause " + containerId);
 
@@ -577,7 +520,7 @@ app.get('/container/:containerId/unpause', function (req, res) {
 /**
  * Stats the container by the ID specified
  */
-app.get('/container/:containerId/stats', function (req, res) {
+app.get('/container/:containerId/stats', (req, res) => {
     var containerId = req.params.containerId;
     console.log("Getting Stats for " + containerId);
     var opts= new Object();
@@ -604,7 +547,7 @@ app.get('/container/:containerId/stats', function (req, res) {
 /**
  * Stop the container by the ID specified
  */
-app.get('/container/:containerId/stop', function (req, res) {
+app.get('/container/:containerId/stop', (req, res) => {
     var containerId = req.params.containerId;
     console.log("Stop " + containerId);
 
@@ -626,7 +569,7 @@ app.get('/container/:containerId/stop', function (req, res) {
     })
 });
 
-app.post('/container/:containerId/exec', function(req, res) {
+app.post('/container/:containerId/exec', (req, res) => {
     var containerId = req.params.containerId;
     console.log("Exec " + containerId);
 
