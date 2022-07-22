@@ -7,7 +7,7 @@ var config = require('./default_settings.js');
 var docker = false;
 
 const logger = function (req, res, next) {
-    console.log(`${Date.now()} ${req.url}`);
+    console.log(`${new Date(Date.now()).toISOString()} ${req.url}`);
     next();
 }
 
@@ -291,7 +291,7 @@ app.get('/service/:serviceId/tasks', async (req, res) => {
     }
     
     log("Getting tasks of service " + serviceId);
-    getServiceTasks(serviceId, function(tasks){
+    getServiceTasks(serviceId, (tasks) => {
         res.status(200);
         tasksResult = [];
         tasks.forEach(task => {
@@ -330,7 +330,7 @@ app.get('/service/:serviceId/restart', (req, res) => {
     var serviceId = req.params.serviceId;
 
     console.log("Getting tasks of service " + serviceId);
-    getServiceTasks(serviceId, function(tasks){
+    getServiceTasks(serviceId, (tasks) => {
         res.status(200);
         console.log("Response received");
         console.log(tasks);
@@ -339,9 +339,9 @@ app.get('/service/:serviceId/restart', (req, res) => {
         taskRestartResult = [];
         tasks.forEach(task => {
             console.log("Getting container " + task.Status.ContainerStatus.ContainerID);
-            getContainer(task.Status.ContainerStatus.ContainerID, function (container) {
+            getContainer(task.Status.ContainerStatus.ContainerID, (container) => {
                 console.log("Restarting container " + container.Id);
-                docker.getContainer(container.Id).restart(function (err, data) {
+                docker.getContainer(container.Id).restart((err, data) => {
                     if (err) {
                         console.log("Error restarting container " + container.Id);
                         restartErrorResult.push({
@@ -359,7 +359,7 @@ app.get('/service/:serviceId/restart', (req, res) => {
                     })
                     res.status(200);
                     res.send(data);
-                }, function (status, message) {
+                }, (status, message) => {
                     res.status(status);
                     if (message) {
                         res.send(message);
@@ -377,7 +377,7 @@ app.get('/service/:serviceId/restart', (req, res) => {
 });
 
 app.get('/nodes', (req, res) => {
-    docker.listNodes({ all: true }, function (err, nodes) {
+    docker.listNodes({ all: true }, (err, nodes) => {
         if (err) {
             res.status(500);
             res.send(err);
@@ -405,7 +405,7 @@ app.get('/nodes', (req, res) => {
  * List all of the containers
  */
 app.get('/containers', (req, res) => {
-    docker.listContainers({ all: true }, function (err, containers) {
+    docker.listContainers({ all: true }, (err, containers) => {
         if (err) {
             res.status(500);
             res.send(err);
@@ -423,8 +423,8 @@ app.get('/container/:containerId/restart', (req, res) => {
     var containerId = req.params.containerId;
     console.log("Restart " + containerId);
 
-    getContainer(containerId, function (container) {
-        docker.getContainer(container.Id).restart(function (err, data) {
+    getContainer(containerId, (container) => {
+        docker.getContainer(container.Id).restart((err, data) => {
             if (err) {
                 res.status(500);
                 res.send(err);
@@ -433,7 +433,7 @@ app.get('/container/:containerId/restart', (req, res) => {
             res.status(200); //We found the container! This reponse can be trusted
             res.send(data);
         });
-    }, function (status, message) {
+    }, (status, message) => {
         res.status(status);
         if (message) {
             res.send(message);
@@ -449,8 +449,8 @@ app.get('/container/:containerId/start', (req, res) => {
     var containerId = req.params.containerId;
     console.log("Start " + containerId);
 
-    getContainer(containerId, function (container) {
-        docker.getContainer(container.Id).start(function (err, data) {
+    getContainer(containerId, (container) => {
+        docker.getContainer(container.Id).start((err, data) => {
             if (err) {
                 res.status(500);
                 res.send(err);
@@ -459,7 +459,7 @@ app.get('/container/:containerId/start', (req, res) => {
             res.status(200); //We found the container! This reponse can be trusted
             res.send(data);
         });
-    }, function (status, message) {
+    }, (status, message) => {
         res.status(status);
         if (message) {
             res.send(message);
@@ -474,8 +474,8 @@ app.get('/container/:containerId/pause', (req, res) => {
     var containerId = req.params.containerId;
     console.log("Pause " + containerId);
 
-    getContainer(containerId, function (container) {
-        docker.getContainer(container.Id).pause(function (err, data) {
+    getContainer(containerId, (container) => {
+        docker.getContainer(container.Id).pause((err, data) => {
             if (err) {
                 res.status(500);
                 res.send(err);
@@ -484,7 +484,7 @@ app.get('/container/:containerId/pause', (req, res) => {
             res.status(200); //We found the container! This reponse can be trusted
             res.send(data);
         });
-    }, function (status, message) {
+    }, (status, message) => {
         res.status(status);
         if (message) {
             res.send(message);
@@ -499,8 +499,8 @@ app.get('/container/:containerId/unpause', (req, res) => {
     var containerId = req.params.containerId;
     console.log("Unpause " + containerId);
 
-    getContainer(containerId, function (container) {
-        docker.getContainer(container.Id).unpause(function (err, data) {
+    getContainer(containerId, (container) => {
+        docker.getContainer(container.Id).unpause((err, data) => {
             if (err) {
                 res.status(500);
                 res.send(err);
@@ -509,7 +509,7 @@ app.get('/container/:containerId/unpause', (req, res) => {
             res.status(200); //We found the container! This reponse can be trusted
             res.send(data);
         });
-    }, function (status, message) {
+    }, (status, message) => {
         res.status(status);
         if (message) {
             res.send(message);
@@ -525,8 +525,8 @@ app.get('/container/:containerId/stats', (req, res) => {
     console.log("Getting Stats for " + containerId);
     var opts= new Object();
     opts.stream = false
-    getContainer(containerId, function (container) {
-        docker.getContainer(container.Id).stats(opts, function (err, data) {
+    getContainer(containerId, (container) => {
+        docker.getContainer(container.Id).stats(opts, (err, data) => {
             if (err) {
                 res.status(500);
                 res.send(err);
@@ -535,7 +535,7 @@ app.get('/container/:containerId/stats', (req, res) => {
             res.status(200); //We found the container! This reponse can be trusted
             res.send(data);
         });
-    }, function (status, message) {
+    }, (status, message) => {
         res.status(status);
         if (message) {
             res.send(message);
@@ -551,8 +551,8 @@ app.get('/container/:containerId/stop', (req, res) => {
     var containerId = req.params.containerId;
     console.log("Stop " + containerId);
 
-    getContainer(containerId, function (container) {
-        docker.getContainer(container.Id).stop(function (err, data) {
+    getContainer(containerId, (container) => {
+        docker.getContainer(container.Id).stop((err, data) => {
             if (err) {
                 res.status(500);
                 res.send(err);
@@ -561,7 +561,7 @@ app.get('/container/:containerId/stop', (req, res) => {
             res.status(200); //We found the container! This reponse can be trusted
             res.send(data);
         });
-    }, function (status, message) {
+    }, (status, message) => {
         res.status(status);
         if (message) {
             res.send(message);
@@ -583,7 +583,7 @@ app.post('/container/:containerId/exec', (req, res) => {
         return;
     }
 
-    getContainer(containerId, function (container) {
+    getContainer(containerId, (container) => {
         if (config.get("debug"))
             console.log("Attempting to execute command in container " + container.Id);
         var options = {
@@ -595,7 +595,7 @@ app.post('/container/:containerId/exec', (req, res) => {
             console.log(options);
 
         var container = docker.getContainer(container.Id);
-        container.exec(options, function (err, exec) {
+        container.exec(options, (err, exec) => {
             if (err) {
                 if (config.get("debug")) {
                     console.log("Failed to get container " + container.Id);
@@ -607,7 +607,7 @@ app.post('/container/:containerId/exec', (req, res) => {
                 return;
             }
 
-            exec.start(function (err, stream) {
+            exec.start((err, stream) => {
                 if (err) {
                     if (config.get("debug")) {
                         console.log("Failed to execute in container " + container.Id);
@@ -620,12 +620,12 @@ app.post('/container/:containerId/exec', (req, res) => {
                 }
                 console.log("executed query");
                 const chunks = [];
-                stream.on("data", function (chunk) {
+                stream.on("data", (chunk) => {
                     chunks.push(chunk.toString());
                 });
 
                 // Send the buffer or you can put it into a var
-                stream.on("end", function () {
+                stream.on("end", () => {
                     // We remove the first 8 chars as the contain a unicode START OF HEADING followed by ENQUIRY.
                     res.send({
                         status: true,
@@ -635,7 +635,7 @@ app.post('/container/:containerId/exec', (req, res) => {
             });
             return;
         });
-    }, function (status, message) {
+    }, (status, message) => {
         res.status(status);
         if (message) {
             res.send(message);
@@ -676,14 +676,14 @@ startServer(docker);
 
 function startServer(docker)
 {
-    var server = app.listen(config.get("http.port"), function () {
+    var server = app.listen(config.get("http.port"), () => {
         console.log("HA-Dockermon server listening on port " + server.address().port);
     });
 }
 
 function getContainer(name, cb, error)
 {
-    docker.listContainers({ limit:100, filters: { "name": [name] } }, function (err, containers) {
+    docker.listContainers({ limit:100, filters: { "name": [name] } }, (err, containers) => {
         if (err) {
             if (typeof error == "function")
                 return error(500, err);
@@ -709,7 +709,7 @@ function getContainer(name, cb, error)
         }
 
         //Hmm lets try get the container by ID instead
-        docker.listContainers({ filters: { "id": [name] } }, function (err, containers) {
+        docker.listContainers({ filters: { "id": [name] } }, (err, containers) => {
             if (err) {
                 if (typeof error == "function")
                     return error(500, err);
@@ -748,7 +748,7 @@ function getContainer(name, cb, error)
 
 function getService(name, cb, error)
 {
-    docker.listServices({ limit:100, filters: { "name": [name] } }, function (err, services) {
+    docker.listServices({ limit:100, filters: { "name": [name] } }, (err, services) => {
         if (err) {
             if (typeof error == "function")
                 return error(500, err);
@@ -771,7 +771,7 @@ function getService(name, cb, error)
 
 function getServiceTasks(name, cb, error)
 {
-    docker.listTasks({ filters: { "service": [name] } }, function (err, tasks) {
+    docker.listTasks({ filters: { "service": [name] } }, (err, tasks) => {
         if (err) {
             if (typeof error == "function")
                 return error(500, err);
@@ -792,7 +792,7 @@ function getServiceTasks(name, cb, error)
 
 function getAllServiceTasks(cb, error)
 {
-    docker.listServices({ limit:100 }, async function (err, services) {
+    docker.listServices({ limit:100 }, async (err, services) => {
         if (err) {
             if (typeof error == "function")
                 return error(500, err);
